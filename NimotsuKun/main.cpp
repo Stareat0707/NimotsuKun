@@ -1,12 +1,8 @@
 #include <iostream>
+#include <fstream>
 using namespace std;
 
-const char gStageData[] = "\
-########\n\
-# .. p #\n\
-# oo   #\n\
-#      #\n\
-########";
+const char gStageFile[] = "stageData.txt";
 
 const int gStageWidth = 8;
 const int gStageHeight = 5;
@@ -33,7 +29,7 @@ int main()
 {
 	Object* state = new Object[gStageWidth * gStageHeight];
 
-	initialize(state, gStageWidth, gStageHeight, gStageData);
+	initialize(state, gStageWidth, gStageHeight, gStageFile);
 
 	while (true)
 	{
@@ -56,15 +52,21 @@ int main()
 	return 0;
 }
 
-void initialize(Object* state, int width, int height, const char* stageData)
+void initialize(Object* state, int width, int height, const char* stageFile)
 {
-	const char* d = stageData;
+	ifstream inputFile("stageData.txt", ifstream::binary);
+	inputFile.seekg(0, ifstream::end);
+	int fileSize = static_cast<int>(inputFile.tellg());
+	inputFile.seekg(0, ifstream::beg);
+	char* fileImage = new char[fileSize];
+	inputFile.read(fileImage, fileSize);
+
 	int x = 0;
 	int y = 0;
-	while (*d != '\0')
+	while (*fileImage != '\0')
 	{
 		Object t;
-		switch (*d)
+		switch (*fileImage)
 		{
 		case '#':
 			t = OBJ_WALL;
@@ -96,8 +98,8 @@ void initialize(Object* state, int width, int height, const char* stageData)
 			t = OBJ_UNKNOWN;
 			break;
 		}
-		++d;
-		
+		++fileImage;
+
 		if (t != OBJ_UNKNOWN)
 		{
 			state[y * width + x] = t;
@@ -159,7 +161,7 @@ void update(Object* state, char input, int width, int height)
 
 	int p = y * width + x;
 	int tp = ty * width + tx;
-	if (state[tp] == OBJ_SPACE || OBJ_GOAL)
+	if (state[tp] == OBJ_SPACE || state[tp] == OBJ_GOAL)
 	{
 		state[tp] = (state[tp] == OBJ_GOAL) ? OBJ_MAN_ON_GOAL : OBJ_MAN;
 		state[p] = (state[p] == OBJ_MAN_ON_GOAL) ? OBJ_GOAL : OBJ_SPACE;
